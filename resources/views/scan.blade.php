@@ -37,7 +37,7 @@ async function submit(code) {
   if (!code || busy || (code === lastCode && Date.now() - lastAt < 3000)) return;
   busy = true; lastCode = code; lastAt = Date.now();
   try {
-    const r = await fetch('{{ route('scan.store') }}', {
+    const r = await fetch('{{ route('scan.store', [], false) }}', {
       method: 'POST',
       headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':token},
       body: JSON.stringify({session_id: document.getElementById('session').value, code})
