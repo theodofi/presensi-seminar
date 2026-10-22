@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
     Route::post('/sessions', [SessionController::class, 'store'])->name('sessions.store');
+    Route::post('/sessions/reorder', [SessionController::class, 'reorder'])->name('sessions.reorder');
     Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->name('sessions.destroy');
     Route::put('/sessions/{session}', [SessionController::class, 'update'])->name('sessions.update');
     Route::post('/sessions/{session}/mode', [SessionController::class, 'mode'])->name('sessions.mode');

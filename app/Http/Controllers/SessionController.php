@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SeminarSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SessionController extends Controller
 {
@@ -24,9 +25,35 @@ class SessionController extends Controller
 
     public function destroy(SeminarSession $session)
     {
+        $number = $session->number;
         $session->delete();
+        $this->renumber();
 
-        return back()->with('ok', "Sesi {$session->number} dihapus beserta data absensinya.");
+        return back()->with('ok', "Sesi {$number} dihapus beserta data absensinya.");
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:seminar_sessions,id']);
+        $ids = array_values(array_unique($data['ids']));
+        DB::transaction(function () use ($ids) {
+            foreach ($ids as $i => $id) {
+                SeminarSession::whereKey($id)->update(['number' => $i + 1]);
+            }
+            $this->renumber();
+        });
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Rapikan nomor urut menjadi 1..N tanpa celah, mengikuti urutan saat ini. */
+    private function renumber(): void
+    {
+        SeminarSession::orderBy('number')->orderBy('id')->get()->each(function ($s, $i) {
+            if ($s->number !== $i + 1) {
+                $s->update(['number' => $i + 1]);
+            }
+        });
     }
 
     public function update(Request $request, SeminarSession $session)
