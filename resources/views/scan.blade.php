@@ -38,14 +38,14 @@ function unlockAudio() {
 function beep(freq, dur, delay = 0) {
   if (!audioCtx) return;
   const o = audioCtx.createOscillator(), g = audioCtx.createGain(), t = audioCtx.currentTime + delay;
-  o.type = 'sine'; o.frequency.value = freq;
-  g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur);
 }
 function sound(st) {
   unlockAudio();
-  if (st === 'ok') beep(1200, 0.18);
-  else { beep(300, 0.15); beep(300, 0.15, 0.22); }
+  if (st === 'ok') beep(1500, 0.3);
+  else { beep(400, 0.25); beep(400, 0.25, 0.35); }
 }
 const colors = {ok:'bg-green-100 text-green-900', duplicate:'bg-yellow-100 text-yellow-900', closed:'bg-red-100 text-red-900', invalid:'bg-red-100 text-red-900'};
 
