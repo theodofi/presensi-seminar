@@ -78,7 +78,8 @@ class CardPdf
                 }
                 // Baris dibuat lebih tinggi dari kotak anchor (rata tengah vertikal) agar ekor huruf tidak terpotong
                 $lineH = max($boxH, $size / self::MM_PT * 1.6);
-                $top = $a['y'] * $H + $boxH / 2 - $lineH / 2;
+                // Dompdf menaruh huruf lebih rendah dari tengah baris; geser naik agar tengah huruf kapital pas di tengah kotak anchor
+                $top = $a['y'] * $H + $boxH / 2 - $lineH / 2 - 0.48 * ($size / self::MM_PT);
                 $html .= sprintf(
                     '<div class="t" style="left:%.3fmm;top:%.3fmm;width:%.3fmm;height:%.3fmm;line-height:%.3fmm;font-size:%.2fpt">%s</div>',
                     $a['x'] * $W, $top, $boxW, $lineH, $lineH, $size, e($text)
