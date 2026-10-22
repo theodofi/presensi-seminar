@@ -187,8 +187,11 @@ class CardTemplate
                 if ($isBlob) {
                     continue;
                 }
-                $near = $c['x2'] >= $b['x1'] - 3 * $bh && $c['x1'] <= $b['x2'] + 3 * $bh
-                    && $c['y2'] >= $b['y1'] - 1.5 * $bh && $c['y1'] <= $b['y2'] + 1.5 * $bh;
+                // Hanya pecahan kecil (mirip "<<" / ">>"); komponen besar seperti judul bergambar tidak disentuh
+                $small = ($c['y2'] - $c['y1'] + 1) <= $bh * 1.3 && ($c['x2'] - $c['x1'] + 1) <= $bh * 3;
+                $near = $small
+                    && $c['x2'] >= $b['x1'] - 3 * $bh && $c['x1'] <= $b['x2'] + 3 * $bh
+                    && $c['y2'] >= $b['y1'] - $bh && $c['y1'] <= $b['y2'] + $bh;
                 if ($near) {
                     $ex = [min($ex[0], $c['x1']), min($ex[1], $c['y1']), max($ex[2], $c['x2']), max($ex[3], $c['y2'])];
                 }
