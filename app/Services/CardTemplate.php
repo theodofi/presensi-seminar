@@ -124,6 +124,7 @@ class CardTemplate
         // Gabungkan sel yang berdekatan (jarak antar huruf/kata) menjadi satu blob
         $seen = [];
         $blobs = [];
+        $all = [];
         $gap = 2;
         for ($gy = 0; $gy < $gh; $gy++) {
             for ($gx = 0; $gx < $gw; $gx++) {
@@ -154,6 +155,10 @@ class CardTemplate
                 }
                 $bw = ($b['x2'] - $b['x1'] + 1) * $cell;
                 $bh = ($b['y2'] - $b['y1'] + 1) * $cell;
+                $all[] = [
+                    'x1' => $b['x1'] * $cell, 'y1' => $b['y1'] * $cell,
+                    'x2' => min($w - 1, ($b['x2'] + 1) * $cell - 1), 'y2' => min($h - 1, ($b['y2'] + 1) * $cell - 1),
+                ];
                 if ($bw >= 40 && $bh >= 8 && $bw > $bh * 2 && $b['n'] >= 80) {
                     $blobs[] = [
                         'x1' => $b['x1'] * $cell, 'y1' => $b['y1'] * $cell,
@@ -166,6 +171,31 @@ class CardTemplate
         usort($blobs, fn ($a, $b) => $b['n'] <=> $a['n']);
         $blobs = array_slice($blobs, 0, 5);
         usort($blobs, fn ($a, $b) => $a['y1'] <=> $b['y1']);
+
+        // Pecahan anchor (mis. "<<" atau ">>" yang terpisah) ikut dihapus bila berada dekat blob utama
+        foreach ($blobs as &$b) {
+            $bh = $b['y2'] - $b['y1'] + 1;
+            $ex = [$b['x1'], $b['y1'], $b['x2'], $b['y2']];
+            foreach ($all as $c) {
+                $isBlob = false;
+                foreach ($blobs as $o) {
+                    if ($o['x1'] === $c['x1'] && $o['y1'] === $c['y1'] && $o['x2'] === $c['x2'] && $o['y2'] === $c['y2']) {
+                        $isBlob = true;
+                        break;
+                    }
+                }
+                if ($isBlob) {
+                    continue;
+                }
+                $near = $c['x2'] >= $b['x1'] - 3 * $bh && $c['x1'] <= $b['x2'] + 3 * $bh
+                    && $c['y2'] >= $b['y1'] - 1.5 * $bh && $c['y1'] <= $b['y2'] + 1.5 * $bh;
+                if ($near) {
+                    $ex = [min($ex[0], $c['x1']), min($ex[1], $c['y1']), max($ex[2], $c['x2']), max($ex[3], $c['y2'])];
+                }
+            }
+            $b['ex'] = $ex;
+        }
+        unset($b);
 
         return $blobs;
     }
@@ -244,10 +274,11 @@ class CardTemplate
 
     private static function erase($im, array $b): void
     {
-        $x1 = max(0, $b['x1'] - 3);
-        $x2 = min(imagesx($im) - 1, $b['x2'] + 3);
-        $y1 = max(0, $b['y1'] - 3);
-        $y2 = min(imagesy($im) - 1, $b['y2'] + 3);
+        [$ex1, $ey1, $ex2, $ey2] = $b['ex'] ?? [$b['x1'], $b['y1'], $b['x2'], $b['y2']];
+        $x1 = max(0, $ex1 - 3);
+        $x2 = min(imagesx($im) - 1, $ex2 + 3);
+        $y1 = max(0, $ey1 - 3);
+        $y2 = min(imagesy($im) - 1, $ey2 + 3);
         $lx = max(0, $x1 - 4);
         $rx = min(imagesx($im) - 1, $x2 + 4);
         for ($y = $y1; $y <= $y2; $y++) {
